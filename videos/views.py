@@ -13,7 +13,7 @@ class GetVideoResult(generics.CreateAPIView):
     def post(self, request, *args, **kwargs):
         # Check if a video file was included in the request
         video_file = request.FILES.get('video')
-
+        prediction=''
         if video_file:
             # Save the video file
             video_path = save_video_file(video_file)
@@ -39,6 +39,8 @@ class GetVideoResult(generics.CreateAPIView):
 
             # Construct a response message with the gait energy image URL
             message = f'Video processed successfully. Gait Energy Image URL: {gait_energy_image_output}'
+            model.load('densenet1-090.h5')
+            prediction = model.predict()
             status_code = status.HTTP_200_OK
         else:
             message = 'No video file included in the request.'
@@ -47,6 +49,7 @@ class GetVideoResult(generics.CreateAPIView):
         # Return the response
         return Response(
             {
+                'result': prediction,
                 'message': message,
                 'status': status_code == status.HTTP_200_OK,
             }, status=status_code)
